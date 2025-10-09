@@ -31,10 +31,6 @@ double getThrottleMapping(double x)
          lut_0 = i;
          lut_1 = i + 1;
       }
-      else
-      {
-         break;
-      }
    }
 
    return LUT[lut_0][1] + (LUT[lut_1][1] - LUT[lut_0][1]) * ((x - LUT[lut_0][0]) / (LUT[lut_1][0] - LUT[lut_0][0]));
