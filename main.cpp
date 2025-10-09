@@ -8,13 +8,15 @@ Timer timer;
 bool sensors_diff_threshold_crossed;
 bool program_running = true;
 
+// LUT (must have 0.0 and 1.0 x vals)
 const double LUT[5][2] = {
     {0.0, 0.0},
     {0.1, 0.3},
     {0.5, 0.7},
     {0.9, 0.9},
-    {1, 0.95}};
+    {1.0, 0.95}};
 
+// get percentage throttle from input percentage throttle (input being the linear %)
 double getThrottleMapping(double x)
 {
    int lut_0, lut_1;
