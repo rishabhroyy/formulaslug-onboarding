@@ -8,6 +8,36 @@ Timer timer;
 bool sensors_diff_threshold_crossed;
 bool program_running = true;
 
+const double LUT[5][2] = {
+    {0.0, 0.0},
+    {0.1, 0.3},
+    {0.5, 0.7},
+    {0.9, 0.9},
+    {1, 0.95}};
+
+double getThrottleMapping(double x)
+{
+   int lut_0, lut_1;
+   for (int i = 0; i < 5; i++)
+   {
+      if (x == LUT[i][0])
+      {
+         return LUT[i][1];
+      }
+      else if (x > LUT[i][0])
+      {
+         lut_0 = i;
+         lut_1 = i + 1;
+      }
+      else
+      {
+         break;
+      }
+   }
+
+   return LUT[lut_0][1] + (LUT[lut_1][1] - LUT[lut_0][1]) * ((x - LUT[lut_0][0]) / (LUT[lut_1][0] - LUT[lut_0][0]));
+}
+
 const double pedal_intercept_1 = -0.25;
 const double pedal_intercept_2 = -0.3;
 const double pedal_scale_1 = 0.5;
@@ -50,7 +80,10 @@ int main()
          }
 
          // Print pedal position
-         printf("%f%%\n", avg_pos);
+         // printf("%f%%\n", avg_pos);
+
+         // Print pedal position (with LUT)
+         printf("%f%%\n", getThrottleMapping(avg_pos));
       }
    }
 
