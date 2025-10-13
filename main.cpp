@@ -5,10 +5,14 @@ AnalogIn apps_0{PA_4};
 AnalogIn apps_1{PA_5};
 AnalogIn brake_apps{PA_6};
 DigitalIn cockpit_switch{PA_7};
-Timer timer;
+Timer bse_implaus_timer;
+Timer trac_control_timer;
 
 bool sensors_diff_threshold_crossed;
 bool brake_passed = false;
+
+bool bse_implaus = false;
+bool trac_control = false;
 
 // LUT (must have 0.0 and 1.0 x vals)
 // const double LUT[5][2] = {
@@ -20,15 +24,14 @@ bool brake_passed = false;
 
 // 1:1 LUT
 const double LUT[2][2] = {
-   {0.0, 0.0},
-   {1.0, 1.0}
-};
+    {0.0, 0.0},
+    {1.0, 1.0}};
 
 // get percentage throttle from input percentage throttle (input being the linear %)
 double getThrottleMapping(double x)
 {
    int lut_0, lut_1;
-   for (int i = 0; i < sizeof(LUT)/sizeof(LUT[0]); i++)
+   for (int i = 0; i < sizeof(LUT) / sizeof(LUT[0]); i++)
    {
       if (x == LUT[i][0])
       {
@@ -51,6 +54,9 @@ const double pedal_scale_1 = 0.5;
 const double pedal_scale_2 = (0.5 / 1.2);
 const double brake_scale = 0.5;
 
+double rpm_front = 140;
+double rpm_back = 140;
+
 int main()
 {
    while (true)
@@ -58,8 +64,8 @@ int main()
       if (brake_passed && cockpit_switch)
       {
          // Get them as percentage
-         double pedal_pos_1 = pedal_scale_1 * ((apps_0.read()*3.3) + pedal_intercept_1);
-         double pedal_pos_2 = pedal_scale_2 * ((apps_1.read()*3.3) + pedal_intercept_2);
+         double pedal_pos_1 = pedal_scale_1 * ((apps_0.read() * 3.3) + pedal_intercept_1);
+         double pedal_pos_2 = pedal_scale_2 * ((apps_1.read() * 3.3) + pedal_intercept_2);
 
          // average them
          double avg_pos = (pedal_pos_1 + pedal_pos_2) / 2;
@@ -68,30 +74,58 @@ int main()
          sensors_diff_threshold_crossed = (abs(pedal_pos_1 - pedal_pos_2)) / ((pedal_pos_1 + pedal_pos_2) / 2) > 0.1;
 
          // If traveling and timer has not started, start it
-         if (sensors_diff_threshold_crossed && (timer.elapsed_time().count() == 0))
+         if (sensors_diff_threshold_crossed && (bse_implaus_timer.elapsed_time().count() == 0))
          {
-            timer.start();
+            bse_implaus_timer.start();
          }
          // If traveling and timer has started and has exceeded 100ms, cut power
-         else if (sensors_diff_threshold_crossed && (timer.elapsed_time().count() / 1000) >= 100)
+         else if (sensors_diff_threshold_crossed && (bse_implaus_timer.elapsed_time().count() / 1000) >= 100)
          {
-            printf("0\n");
+            bse_implaus = true;
          }
          // If timer is running and we stopped traveling, then stop and reset the timer
-         else if (!sensors_diff_threshold_crossed && (timer.elapsed_time().count()) > 0)
+         else if (!sensors_diff_threshold_crossed && (bse_implaus_timer.elapsed_time().count()) > 0)
          {
-            timer.stop();
-            timer.reset();
+            bse_implaus = false;
+            bse_implaus_timer.stop();
+            bse_implaus_timer.reset();
+         }
+
+         double trac_difference_threshold_crossed = (abs(rpm_front - rpm_back)) / ((rpm_front + rpm_back) / 2) > 0.1;
+
+         if (trac_difference_threshold_crossed && (trac_control_timer.elapsed_time().count() == 0))
+         {
+            trac_control_timer.start();
+         }
+         // If traveling and timer has started and has exceeded 100ms, cut power
+         else if (trac_difference_threshold_crossed && (trac_control_timer.elapsed_time().count() / 1000) >= 100)
+         {
+            trac_control = true;
+         }
+         // If timer is running and we stopped traveling, then stop and reset the timer
+         else if (!trac_difference_threshold_crossed && (trac_control_timer.elapsed_time().count()) > 0)
+         {
+            trac_control = false;
+            trac_control_timer.stop();
+            trac_control_timer.reset();
          }
 
          // Print pedal position
-         if (!sensors_diff_threshold_crossed) {
-            printf("%f%%\n", getThrottleMapping(avg_pos)*100);
+         if (!bse_implaus && !trac_control)
+         {
+            printf("%f%%\n", getThrottleMapping(avg_pos) * 100);
          }
-      } else {
-         double brake_pos = brake_scale * ((brake_apps.read()*3.3) + brake_intercept);
+         else
+         {
+            printf("0\n");
+         }
+      }
+      else
+      {
+         double brake_pos = brake_scale * ((brake_apps.read() * 3.3) + brake_intercept);
 
-         if (brake_pos > 0.5) {
+         if (brake_pos > 0.5)
+         {
             brake_passed = true;
          }
 
