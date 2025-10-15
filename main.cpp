@@ -61,7 +61,7 @@ int main()
 {
    while (true)
    {
-      if (brake_passed && cockpit_switch)
+      if (brake_passed && cockpit_switch.read() == 1)
       {
          // Get them as percentage
          double pedal_pos_1 = pedal_scale_1 * ((apps_0.read() * 3.3) + pedal_intercept_1);
@@ -91,13 +91,14 @@ int main()
             bse_implaus_timer.reset();
          }
 
+         // For traction control, if the front and back tires are spinning more than 10% difference in speeds
          double trac_difference_threshold_crossed = (abs(rpm_front - rpm_back)) / ((rpm_front + rpm_back) / 2) > 0.1;
 
          if (trac_difference_threshold_crossed && (trac_control_timer.elapsed_time().count() == 0))
          {
             trac_control_timer.start();
          }
-         // If traveling and timer has started and has exceeded 100ms, cut power
+         // If traction control and timer has started and has exceeded 100ms, cut power
          else if (trac_difference_threshold_crossed && (trac_control_timer.elapsed_time().count() / 1000) >= 100)
          {
             trac_control = true;
@@ -122,6 +123,7 @@ int main()
       }
       else
       {
+         // Check if brakes are pressed at the beginning to start the car
          double brake_pos = brake_scale * ((brake_apps.read() * 3.3) + brake_intercept);
 
          if (brake_pos > 0.5)
