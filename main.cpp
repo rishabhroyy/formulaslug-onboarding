@@ -7,6 +7,7 @@ AnalogIn brake_apps{PA_6};
 DigitalIn cockpit_switch{PA_7};
 Timer bse_implaus_timer;
 Timer trac_control_timer;
+DigitalOut buzzer{PA_8};
 
 bool sensors_diff_threshold_crossed;
 bool brake_passed = false;
@@ -129,6 +130,15 @@ int main()
          if (brake_pos > 0.5)
          {
             brake_passed = true;
+
+            // Buzzer on
+            buzzer.write(1);
+
+            // Not sure if I should block thread or not??
+            ThisThread::sleep_for(500);
+
+            // buzzer off
+            buzzer.write(0);
          }
 
          printf("0\n");
