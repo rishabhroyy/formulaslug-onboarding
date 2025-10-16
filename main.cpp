@@ -31,6 +31,7 @@ bool trac_control = false;
 
 // high braking threshold (for BSE)
 const double high_brake_thresh = 0.9;
+const double high_current_thresh = 0.8;
 
 // LUT (must have 0.0 and 1.0 x vals)
 // const double LUT[5][2] = {
@@ -102,7 +103,8 @@ int main()
             sensors_diff_threshold_crossed = true;
          }
 
-         if (brake_pos > high_brake_thresh) {
+         // BSE high brake threshold but the car is running high current so cut power
+         if (brake_pos > high_brake_thresh && avg_pos > high_current_thresh) {
             sensors_diff_threshold_crossed = true;
          }
 
