@@ -1,16 +1,17 @@
 #include "mbed.h"
 #include <cmath>
 
-AnalogIn apps_0{PA_4};
-AnalogIn apps_1{PA_5};
+AnalogIn apps_0{PA_3};
+AnalogIn apps_1{PA_4};
 AnalogIn brake_apps{PA_6};
-DigitalIn cockpit_switch{PA_7};
+DigitalIn cockpit_switch{PA_7, PullDown};
 Timer bse_implaus_timer;
 Timer trac_control_timer;
 DigitalOut buzzer{PA_8};
 
 bool sensors_diff_threshold_crossed;
-bool brake_passed = false;
+bool brake_passed = true;
+bool cockpit_passed = false;
 
 bool bse_implaus = false;
 bool trac_control = false;
@@ -62,7 +63,7 @@ int main()
 {
    while (true)
    {
-      if (brake_passed && cockpit_switch.read() == 1)
+      if (brake_passed && cockpit_passed)
       {
          // Get them as percentage
          double pedal_pos_1 = pedal_scale_1 * ((apps_0.read() * 3.3) + pedal_intercept_1);
@@ -122,6 +123,13 @@ int main()
             printf("0\n");
          }
       }
+      else if (brake_passed)
+      {
+         if (cockpit_switch.read() == 1)
+         {
+            cockpit_passed = true;
+         }
+      }
       else
       {
          // Check if brakes are pressed at the beginning to start the car
@@ -132,16 +140,17 @@ int main()
             brake_passed = true;
 
             // Buzzer on
-            buzzer.write(1);
+            // buzzer.write(1);
 
             // Not sure if I should block thread or not??
-            ThisThread::sleep_for(500);
+            // ThisThread::sleep_for(500);
+            printf("Brakes passed");
 
             // buzzer off
-            buzzer.write(0);
+            // buzzer.write(0);
          }
 
-         printf("0\n");
+         // printf("0\n");
       }
    }
 
