@@ -177,8 +177,8 @@ int main()
             // // Buzzer on
             // buzzer.write(1);
 
-            // // Not sure if I should block thread or not??
-            // ThisThread::sleep_for(500);
+            // // Not sure if I should block thread or use interrupts? not??
+            // ThisThread::sleep_for(1000);
 
             // for debug
             printf("Brakes passed");
