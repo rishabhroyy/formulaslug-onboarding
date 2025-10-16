@@ -29,6 +29,9 @@ bool cockpit_passed = false;
 bool bse_implaus = false;
 bool trac_control = false;
 
+// high braking threshold (for BSE)
+const double high_brake_thresh = 0.9;
+
 // LUT (must have 0.0 and 1.0 x vals)
 // const double LUT[5][2] = {
 //     {0.0, 0.0},
@@ -82,6 +85,9 @@ int main()
    {
       if (brake_passed && cockpit_passed)
       {
+         // brake pedal position
+         double brake_pos = brake_scale * ((brake_apps.read() * 3.3) + brake_intercept);
+
          // Get accelerator pedals as percentages
          double pedal_pos_1 = pedal_scale_1 * ((apps_0.read() * 3.3) + pedal_intercept_1);
          double pedal_pos_2 = pedal_scale_2 * ((apps_1.read() * 3.3) + pedal_intercept_2);
@@ -93,6 +99,10 @@ int main()
          sensors_diff_threshold_crossed = (abs(pedal_pos_1 - pedal_pos_2)) / ((pedal_pos_1 + pedal_pos_2) / 2) > 0.1;
          if (pedal_pos_1 < 0 || pedal_pos_1 > 1 || pedal_pos_2 < 0 || pedal_pos_2 > 1)
          {
+            sensors_diff_threshold_crossed = true;
+         }
+
+         if (brake_pos > high_brake_thresh) {
             sensors_diff_threshold_crossed = true;
          }
 
