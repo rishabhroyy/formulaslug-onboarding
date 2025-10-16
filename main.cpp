@@ -74,6 +74,10 @@ int main()
 
          // Get if it is traveling (10% diff)
          sensors_diff_threshold_crossed = (abs(pedal_pos_1 - pedal_pos_2)) / ((pedal_pos_1 + pedal_pos_2) / 2) > 0.1;
+         if (pedal_pos_1 < 0 || pedal_pos_1 > 1 || pedal_pos_2 < 0 || pedal_pos_2 > 1)
+         {
+            sensors_diff_threshold_crossed = true;
+         }
 
          // If traveling and timer has not started, start it
          if (sensors_diff_threshold_crossed && (bse_implaus_timer.elapsed_time().count() == 0))
