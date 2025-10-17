@@ -6,17 +6,17 @@ AnalogIn apps_0{PA_3};
 AnalogIn apps_1{PA_4};
 
 // Brake Pedal Sensor
-AnalogIn brake_apps{PA_6};
+AnalogIn brake_apps{PA_0};
 
 // Cockpit Switch
-DigitalIn cockpit_switch{PA_7, PullDown};
+DigitalIn cockpit_switch{PA_1, PullDown};
 
 // timers
 Timer bse_implaus_timer;
 Timer trac_control_timer;
 
 // buzzer
-DigitalOut buzzer{PA_8};
+DigitalOut buzzer{LED1};
 
 // represents whether accelerator sensors are >10% different
 bool sensors_diff_threshold_crossed;
@@ -174,17 +174,17 @@ int main()
          {
             brake_passed = true;
 
-            // // Buzzer on
-            // buzzer.write(1);
+            // Buzzer on
+            buzzer.write(1);
 
-            // // Not sure if I should block thread or use interrupts? not??
-            // ThisThread::sleep_for(1000);
+            // Not sure if I should block thread or use interrupts? not??
+            ThisThread::sleep_for(1000);
 
             // for debug
             printf("Brakes passed");
 
-            // // buzzer off
-            // buzzer.write(0);
+            // buzzer off
+            buzzer.write(0);
 
             // // If need to print 0s before brake passing, I removed it so the console is cleaner
             // printf("0\n");
